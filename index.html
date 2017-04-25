@@ -31,7 +31,7 @@
 						<li><a href="#four">Resources</a></li>
 						<li><a href="#five">Goals &amp Deliverables</a></li>
 						<li><a href="#six">Platform</a></li>
-						<li><a href="#seven">Schedule</a></li>
+						<li><a href="#seven">Updated Schedule</a></li>
 					</ul>
 				</nav>
 				<footer>
@@ -66,14 +66,27 @@
 									<h4>Updated schedule</h4>
 									<p><a href="#seven">Click here.</a></p>
 
+									<!-- CHANGE GOALS AND DELIVS AND SCHEDULE -->
+
 									<h4>Summary of work completed so far</h4>
-									<p>Summary here</p>
+									<p>So far, we have completed the following tasks 
+										<ul>
+											<li>Extensive Literature Review</li>
+											<li>Setting up and getting familiar with Tensorflow</li>
+											<li>Implement single layer pre-training using an autoencoder in CUDA (Tensorflow)</li>
+											<li>Implement greedy layer-wise pre-training using stacked autoencoders</li>
+											<li>Implement baseline synchronized layer-wise pre-training using deep stacked autoencoders</li>
+											<li>Familiarizing with Multi-GPU implementations on Tensorflow</li>
+											<li>Familiarizing with socket programming for communication in a distributed setting</li>
+										</ul>
+									</p>
 
 									<h4>Progress on goals and deliverables</h4>
-									<p>insert link</p>
+									<p>We planned to achieve an efficient parallel and distributed implementation of synchronized layer-wise pre-training algorithm of deep neural networks. We have come up with an efficient baseline implementation of the sequential layer-wise pre-training algorithm as a baseline. We have also implemented an efficient baseline synchronized version of the pretraining algorithm on a single GPU. These serve as a proof of concept for the algorithm as well as a baseline to test and analyse our speed up on. At this point in time, the goal we plan to achieve is an efficent multi-GPU version of this algorithm. <br>
+									We had hoped to achieve an efficient custom parameter server implementation and a generalized distributed version of this algorithm. However, on analysing the problem deeper and considering feasibilty, we concluded that the distributed implementation of this algorithm without a custom parameter server is a challenging problem in itself and thus we decided to make this our 125% goal for this project.</p>
 
 									<h4>Plan for the parallelism competition</h4>
-									<p>insert link</p>
+									<p>We plan to present a poster at the parallelism competition. The poster will include a detailed analysis of the results of our work and the our experiments.</p>
 
 									<h4>Preliminary results</h4>
 									<p>insert link</p>
@@ -164,7 +177,7 @@
 						<!-- Seven -->
 							<section id="seven">
 								<div class="container">
-									<h3>Schedule</h3>
+									<h3>Updated Schedule</h3>
 									<p>The list of tasks with tentative completion dates are enlisted below:</p>
 									<ul>
 										<li> Extensive Literature Review - April 14, 2017</li>
