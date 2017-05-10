@@ -58,29 +58,27 @@
 									<h3>Project Highlights</h3>
 									<p>
 										<ul>
-										<li>We provide an efficient parallel and distributed (multi-GPU) implementation of a <a href="https://arxiv.org/pdf/1603.02836.pdf" target="_blank">synchronized layer-wise pre-training algorithm</a> for deep neural networks using deep stacked autoencoders.</li>
-										
-										<li>Implementation and analysis of our different implementations of pre-training neural networks.</li>
-
-										<li>We provide both data parallel and model parallel implementations and compare the two.</li>
+<li>We provide an efficient parallel multi-GPU implementation of a synchronized layer-wise pre-training algorithm for deep neural networks using deep stacked autoencoders.</li>
+<li>We provide an implementation of both data parallel and model parallel pretraining of deep neural network and analyze their performance relative to sequential implementation of greedy layer-wise pretraining.</li>
+<li>Analysis of workload characteristics - amount of input training data, number of hidden layers and number of units in the hidden layers.</li>
 										</ul>
 									</p>
 
 									<h3>Challenge (tl;dr version)</h3>
 									<p>
 										<ul>
-<li>We provide an efficient parallel multi-GPU implementation of a synchronized layer-wise pre-training algorithm for deep neural networks using deep stacked autoencoders.</li>
-<li>We provide an implementation of both data parallel and model parallel pretraining of deep neural network and analyze their performance relative to sequential implementation of greedy layer-wise pretraining.</li>
-<li>Analysis of workload characteristics - amount of input training data, number of hidden layers and number of units in the hidden layers.</li>
+<li>Parallelizing the traditionally sequential process of greedy layer-wise pretraining to increase speed of pretraining by reducing processor idle time in multi-processor environments.</li>
+<li>Exploring model-parallelism and data-parallelism in pretraining of deep neural networks.</li>
+<li>Pipelining layer-wise autoencoding across multiple GPUs. (Also, analyzing whether batching layers and then pipelining them improves performance)</li>
 
 										</ul>
 									</p>
 
 									<h3>Preliminary Results</h3>
 									<p>
-									<img src="images/3.png" alt="" style="width:33%;height:50%"/>
-									<img src="images/2.png" alt="" style="width:33%;height:50%"/>
-									<img src="images/1.png" alt="" style="width:33%;height:50%"/>
+									<img src="images/3.png" alt="" style="width:50%;height:70%"/>
+									<img src="images/2.png" alt="" style="width:50%;height:70%"/>
+									<img src="images/1.png" alt="" style="width:50%;height:70%"/>
 									</p>
 
 									<h3>Expected Results (on Friday)</h3>
