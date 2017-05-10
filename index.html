@@ -64,7 +64,7 @@
 										</ul>
 									</p>
 
-									<h3>Challenge (tl;dr version)</h3>
+									<h3>Challenges (tl;dr version)</h3>
 									<p>
 										<ul>
 <li>Parallelizing the traditionally sequential process of greedy layer-wise pretraining to increase speed of pretraining by reducing processor idle time in multi-processor environments.</li>
@@ -79,6 +79,11 @@
 									<img src="images/3.png" alt="" style="width:45%;height:60%"/>
 									<img src="images/2.png" alt="" style="width:45%;height:60%"/>
 									<img src="images/1.png" alt="" style="width:45%;height:60%"/>
+									<ul>
+										<li>Greedy Layer-wise: This is the traditional method used for pretraining deep neural networks.</li>
+										<li>Synch. Serial: This is the single GPU implementation of the synchronized pre-training algorithm which essentially propogates through all the hidden layers, creating updates such that every layer has completed one epoch before any layer can start the second epoch. This simulates the multi-GPU execution of the synchronized algorithm on a single GPU.</li>
+										<li>Synch. Parallel: This is the multi-GPU implementation of the synchronized pre-training algorithm.</li>
+									</ul>
 									</p>
 
 									<h3>Expected Results (on Friday)</h3>
