@@ -69,25 +69,27 @@
 									<h3>Challenge (tl;dr version)</h3>
 									<p>
 										<ul>
-										<li>Parallelizing the traditionally sequential process of greedy layer-wise pretraining to increase speed of pretraining by reducing processor idle time in multi-processor environments.</li>
-										
-										<li>Exploring model-parallelism and data-parallelism in pretraining of deep neural networks.</li>
+<li>We provide an efficient parallel multi-GPU implementation of a synchronized layer-wise pre-training algorithm for deep neural networks using deep stacked autoencoders.</li>
+<li>We provide an implementation of both data parallel and model parallel pretraining of deep neural network and analyze their performance relative to sequential implementation of greedy layer-wise pretraining.</li>
+<li>Analysis of workload characteristics - amount of input training data, number of hidden layers and number of units in the hidden layers.</li>
 
-										<li>Pipelining layer-wise autoencoding across multiple GPUs. (Also, analyzing whether batching layers and then pipelining them improves performance)</li>
 										</ul>
 									</p>
 
 									<h3>Preliminary Results</h3>
 									<p>
 										<ul>
-											<li>HERE</li>
+											<li>Update in progress.</li>
 										</ul>
 									</p>
 
 									<h3>Expected Results (on Friday)</h3>
 									<p>
 										<ul>
-											<li>HERE</li>
+<li>Thorough analysis of workload characteristics of different implementations.</li>
+<li>Fine grained characterization of which operations in the network pretraining takes most computational time.</li>
+<li>Another implementation which schedules groups of layers on different GPUs catering to very skewed number of hidden units.</li>
+
 										</ul>
 									</p>
 
