@@ -54,8 +54,8 @@
 									<h3>Summary</h3>
 									<p>
 									<ul>
-										<li>We implemented <bold>data parallel</bold> and <bold>model parallel</bold> approaches to pretraining a deep neural network using stacked autoencoders.</li>
-										<li>We provide a generic optimized multi-GPU implementations of pretraining for both data parallel and model parallel approaches.</li>
+										<li>We implemented <b>data parallel</b> and <b>model parallel</b> approaches to pretraining a deep neural network using stacked autoencoders.</li>
+										<li>We provide a generic optimized multi-GPU implementations of pretraining for both data parallel and model parallel approaches in Tensorflow.</li>
 										<li>We analyze the performance and accuracy limitations of both approaches in comparison to greedy layerwise pretraining.</li>
 									</ul>
 									</p>
@@ -75,10 +75,10 @@
 									<h3>What is pretraining a deep neural network?</h3>
 									<p>
 										Given a deep neural network, pretraining is a process where the weights of the network are learnt to provide a good starting point for training the network further. It helps pre-condition the network with a set of parameter values which effectively facilitates further supervised training.
-										<img src="images/glp1.png" alt="" style="width:20%;height:50%"/>
+										<img src="images/glp1.png" alt="" style="width:20%;height:60%"/>
 										<img src="images/glp2.png" alt="" style="width:77%;height:100%"/>
 										The traditional approach to pretraining the network uses greedy layer-wise pretraining. Figure 1 illustrates a deep neural network with 3 hidden layers. The greedy layer-wise pre-training works bottom-up in a deep neural network. The algorithm begins by training the first hidden layer using an autoencoder network minimizing the reconstruction error of the input. Once this layer has been trained, its parameters are fixed and the next layer is trained in a similar manner. The process is repeated until all the layers have been trained. This process is illustrated in Figure 2. The iterative nature of this process makes pre-training a relatively slow and time consuming process.
-										In this project, we explore parallelizing this process in two ways - <bold> Model Parallel </bold> approach and <bold> Data Parallel </bold> approach.
+										In this project, we explore parallelizing this process in two ways - <b> Model Parallel </b> approach and <b> Data Parallel </b> approach.
 									</p>
 								</div>
 							</section>
