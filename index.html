@@ -24,7 +24,8 @@
 				</header>
 				<nav id="nav">
 					<ul>
-						<li><a href="#ps" class="active">Problem Statement</a></li>
+						<li><a href="#sum" class="active">Summary</a></li>
+						<li><a href="#ps" class="active">Pretraining</a></li>
 						<li><a href="#mp" class="active">Model Parallel Approach</a></li>
 						<li><a href="#dp" class="active">Data Parallel Approach</a></li>
 						<li><a href="#con" class="active">Conclusion</a></li>
@@ -45,12 +46,32 @@
 				<!-- Main -->
 					<div id="main">
 
-						<!-- One -->
-							<section id="ps">
+							<section id="sum">
 								<div class="container">
 									<header class="major">
 										<h3>Parallelizing Pretraining of Deep Neural Networks using Stacked Autoencoders</h3>
 									</header>
+									<h3>Summary</h3>
+									<p>
+									<ul>
+										<li>We implemented <bold>data parallel</bold> and <bold>model parallel</bold> approaches to pretraining a deep neural network using stacked autoencoders.</li>
+										<li>We provide a generic optimized multi-GPU implementations of pretraining for both data parallel and model parallel approaches.</li>
+										<li>We analyze the performance and accuracy limitations of both approaches in comparison to greedy layerwise pretraining.</li>
+									</ul>
+									</p>
+									<p>
+									<h4> Experimental Setup </h4>
+									<ul>
+										<li>For all experiments, we use AWS g2.8xlarge instance, which has 4 NVIDIA GRID K520 GPUs on the instance.</li>
+										<li>We implemented the model with Tensorflow using Multi-GPU primitives.</li>
+									  	<li>We use MNIST hand-written digit recognition dataset containing 55000 training images and 10 output labels.</li>
+									</ul>
+									</p>
+								</div>
+							</section>
+
+							<section id="ps">
+								<div class="container">
 									<h3>What is pretraining a deep neural network?</h3>
 									<p>
 										Given a deep neural network, pretraining is a process where the weights of the network are learnt to provide a good starting point for training the network further. It helps pre-condition the network with a set of parameter values which effectively facilitates further supervised training.
