@@ -28,13 +28,8 @@
 						<li><a href="#mp" class="active">Model Parallel Approach</a></li>
 						<li><a href="#dp" class="active">Data Parallel Approach</a></li>
 						<li><a href="#con" class="active">Conclusion</a></li>
-						<li><a href="#cp">Checkpoint</a></li>
-						<li><a href="#two">Background</a></li>
-						<li><a href="#three">The Challenge</a></li>
-						<li><a href="#four">Resources</a></li>
-						<li><a href="#five">Goals &amp Deliverables</a></li>
-						<li><a href="#six">Platform</a></li>
-						<li><a href="#seven">Updated Schedule</a></li>
+						<li><a href="#three">Challenges</a></li>
+						<li><a href="#four">References</a></li>
 					</ul>
 				</nav>
 				<footer>
@@ -109,7 +104,7 @@
 									<h3>Data Parallel Approach</h3>
 									<p>
 										In data-parallel pretraining, the entire training dataset is split into smaller chunks and each GPU in the multi-GPU environment performs training on a chunk of this training data. In our implementation, we send a batch-size of data to every node and perform training on the batch. At the end of this, the gradients computed by the various GPUs are accumulated, averaged and applied to the corresponding weight parameters. These weights are then used by different nodes to perform the next set of batches in parallel. This process repeats layer-wise, just like in greedy layer-wise pretraining. Thus, the important overhead in this data-parallel approach is caused by the wide-dependency of synchronization and averaging of gradients and applying the weight updates at the end of processing the batch. The figure below illustrates the data parallel pretraining approach.
-										<img src="images/dp.png" alt="" style="width:80%;height:60%"/>
+										<img src="images/dp.png" alt="" style="width:80%;height:50%"/>
 									</p>
 									<p>
 									<h4> Experimental Setup </h4>
@@ -122,11 +117,11 @@
 									<h4> What is the speed-up?</h4>
 									<p>
 									Pretraining for 40 epochs using a batch-size of 5000 on a network with 4 hidden layers, each containing 2000 hidden units: 
-									<img src="images/dpres1.png" alt="" style="width:80%;height:50%"/></p>
+									<img src="images/dpres1.png" alt="" style="width:80%;height:40%"/></p>
 									<p>
 									<ul>
-										<li>We observe near linear speedup on the number of GPUs in data parallel approach for an optimum batch size.</li>
-										<li>In the data parallel approach, the gradients are accumulated and weights are updated after every node processes a batch-size of images each. Hence, if the batch-size is very small, then, the amount of communication and synchronization overhead due to wide-dependency overshadows the parallelism benefit.</li>
+										<li>We observe near linear speedup on the number of GPUs in data parallel approach for an optimum batch size of 5000.</li>
+										<li>In the data parallel approach, the gradients are accumulated and weights are updated after every node processes a batch-size of images each. Hence, if the batch-size is very small, then, the amount of communication and synchronization overhead due to wide-dependency nulls the parallelism benefit.</li>
 										<li>Hence, there is an optimum batch-size which provided a linear speed-up.</li>
 									</ul>
 									</p>
@@ -136,96 +131,74 @@
 									<p>
 									<ul>
 										<li>We observe that increasing batch-size helps speed up pretraining process until the data fits within GPU memory.</li>
-										<li>The run time per epoch had an optimal value for a batch-size of 7000 images per batch.</li>
+										<li>The run time per epoch had an optimal value for a batch-size of 7000 images per batch, after which the run-time started increasing.</li>
 									</ul></p>
 									<p>
 									We then profiled our code to understand which operation consumes how much time. The results are shown in the graph below.
 									<img src="images/dpres3.png" alt="" style="width:80%;height:50%"/></p>
 									<p>
 									<ul>
-										<li>The time to accumulate gradients, average them and perform the weight update didn't scale with number of GPUs and remained constant for varying number of GPUs. This can be explained by the fact that there is a synchronization step at the end of each epoch, which is a form of a wide dependency which takes a constant time.</li>
-										<li>Most of the time is spent in doing the forward and back-propagation and computing the loss.</li>
+										<li>The time to accumulate gradients, average them and perform the weight update didn't scale with number of GPUs and remained constant for varying number of GPUs. This can be explained by the fact that there is a synchronization step at the end of processing a batch, which is a form of a wide dependency taking a constant time.</li>
+										<li>Most of the time is spent in doing the forward and back-propagation and computing the loss. This scales as the number of GPUs are increased.</li>
 									</ul>
 									</p>
 									<p>
-									<h4>Key Observations</h4>
+									<h4>Key Results</h4>
 									<ul>
-										<li>We achieved 1.3x speedup for 4 layers on 4 GPUs and 1.24x speedup for 3 layers on 3 GPUs, when pretraining is done for 30 epochs with a batch-size of 100.</li>
-										<li>Increasing the batch-size and number of epochs helps us achieve better speedup of 2.1x for 4 layers on 4 GPUs and 1.84x for 3 layers on 3 GPUs.</li>
-										<li>Increasing number of epochs amortizes communication overhead.</li>
-										<li>Profiling our code helped us understand that computing gradients and applying the update to the weights is a time consuming part of the pretraining process. Hence, higher batch-sizes reduces the number of times compute-and-apply gradient step occurs, thereby providing greater speed-up.</li>
-										<li>The other interesting observation is that training 4 layers on 3 GPUs and 3 layers on 2 GPUs enforces one of the layers to be sequential, keeping the other GPUs idle. This results in poor speed-up for such configurations.</li>
+										<li>We achieved a linear speed-up on number of GPUs, for an optimum batch-size of training images.</li>
+										<li>The wide-dependency of synchronization and averaging weights does not scale with number of GPUs and remains constant.</li>
 									</ul></p>
 								</div>
 							</section>
 
-						<!-- CP -->
-							<section id="cp">
+							<section id="con">
 								<div class="container">
-									<h3>Checkpoint</h3>
-
-									<h4>Updated schedule</h4>
-									<p><a href="#seven">Click here.</a></p>
-
-									<h4>Summary of work completed so far</h4>
-									<p>We have completed the following tasks so far:
+									<h3>Is Model Parallel approach better or Data Parallel approach better?</h3>
+									<p>
+										We compared the two approaches for an optimum batch-size of 7000 images per batch. We pretrained on two networks:
 										<ul>
-											<li>Extensive Literature Review</li>
-											<li>Setting up Tensorflow on GHC machine in the user space, attempting setup of Tensorflow on Latedays Cluster and getting familiar with Tensorflow</li>
-											<li>Implement single layer pre-training using an autoencoder in Tensorflow</li>
-											<li>Implement greedy layer-wise pre-training of stacked autoencoder in Tensorflow</li>
-											<li>Implement single-GPU single-node synchronized layer-wise pre-training of deep stacked autoencoders</li>
-											<li>Familiarizing with Multi-GPU implementations on Distributed Tensorflow</li>
-											<li>Familiarizing with Socket Programming in python for communication in a distributed setting</li>
-											<li>Implementing socket communication of string in between epochs of training</li>
-											<li>Implementing two-GPU single-node synchronized layer-wise pre-training of deep stacked autoencoders (in debugging phase)</li>
-											<li>Discussions with Anant and Ravi from course staff about progress and further ideas</li>
+											<li>Config 1: 4 hidden layers with 2000 hidden units on each layer.</li>
+											<li>Config 2: 4 hidden layers with 2000, 1000, 500 and 100 hidden units on each layer.</li>
+										</ul>
+										<img src="images/conres1.png" alt="" style="width:80%;height:50%"/>
+									</p>
+									<p>
+										For a good batch-size of 7000 images, data parallel approach performs better than model parallel approach for both uniform distribution of hidden units across layers and a skewed distribution of hidden units across layers.
+									</p>
+									<h3>But are accuracies still consistent with greedy layer-wise pretraining?</h3>
+									<p>
+										The plot below shows the model accuracy after pretraining and supervised finetuning for different number of epochs of pretraining and finetuning for both greedy layer-wise pretraining and model parallel pretraining. 
+										<img src="images/conres2.png" alt="" style="width:80%;height:50%"/>
+									</p>
+									<p>
+										We observe that model parallel approach achieves around 96.62&#37; similar to the greedy layer-wise pretraining. We conducted the same experiment using data parallel approach. The results are provided below.
+										<ul>
+											<li>30 epochs of pretraining, 30 epochs of finetuning gives an accuracy of 0.7472</li>
+											<li>60 epochs of pretraining, 60 epochs of finetuning gives an accuracy of 0.8162</li>
 										</ul>
 									</p>
-
-									<h4>Progress on goals and deliverables</h4>
-									<p>We planned to achieve an efficient parallel and distributed implementation of synchronized layer-wise pre-training algorithm of deep neural networks. We have experimented with greedy layer-wise pre-training of Deep Stacked Autoencoders on MNIST dataset. We have also implemented a single-GPU single-node synchronized layer-wise pre-training of deep stacked autoencoders as a baseline. We have compared the losses and accuracy values of our implementation with greedy layer-wise pretraining on MNIST dataset as done in the reference paper. This serves as a proof of concept for the algorithm as well as a baseline to test and analyse our speed up on. At this point in time, the goal we plan to achieve is an efficent multi-GPU version of this algorithm. We have implemented two-GPU single node version and we are debugging the correctness of our implementation.<br>
-									We had hoped to achieve an efficient custom parameter server implementation and a generalized distributed version of this algorithm. However, on understanding the problem deeper and considering feasibilty, we concluded that the distributed implementation of this algorithm using a custom parameter server will be an overkill for the problem. An efficient multi-GPU implementation with extensive analysis on various possible placement of pretraining layers and communication strategies would be good end goal for our project. We also hope to implement a distributed GPU implementation for further analysis.</p>
-
-									<h4>Plan for the parallelism competition</h4>
-									<p>We plan to present a poster at the parallelism competition. The poster will include a detailed analysis of the results of our work and our experiments.</p>
-
-									<h4>Challenges so far</h4>
-									<p><ul>
-									<li>Getting started with Tensorflow (which was new to both of us)</li>
-									<li>Understanding model parallelism strategies in Tensorflow and getting familiar with multi-GPU implementation of the same</li>
-									<li>Understanding various possible ops placement on devices, interrupting the model in between sessions, communication via sockets, etc.</li>
-									</ul></p>
-
+									<p>
+										For smaller batch-sizes, the accuracies will be higher but the run-times and speed-ups will be much lesser. Hence, there is a compromise between accuracy and speed-up for data parallel approach.
+									</p>
+									<p>
+										<h3>Does parallelism help?</h3>
+										Pretraining for 60 epochs using a batch-size of 5000 on a network with 4 hidden layers, each containing 2000 hidden units: 
+										<img src="images/conres3.png" alt="" style="width:80%;height:40%"/>
+									</p>
+									<p>
+									This configuration provides reasonable accuracies on all three models. We achieve 1.6x speed-up for model parallel approach and 1.1x speed-up for data parallel approach.
+									</p>
 								</div>
 							</section>
 
-						<!-- Two -->
-							<section id="two">
-								<div class="container">
-									<h3>Background</h3>
-									<p>Pre-training a deep neural network helps pre-condition the network with a set of parameter values which effectively facilitates further supervised training. Greedy layer-wise pre-training using stacked autoencoders is widely used in deep learning applications. Recent research has shown that a <a href="https://arxiv.org/pdf/1603.02836.pdf" target="_blank">synchronized layer-wise pre-training approach</a> using multiple cores is effective in speeding up the pre-training process by over 25 percent. In this project, we plan to give an optimized parallel and distributed implementation of this process in a multi-core heterogenous (CPU-GPU) environment.</p>
-									<p>Figure 1 illustrates a deep neural network with 3 hidden layers. The greedy layer-wise pre-training works bottom-up in a deep neural network. The algorithm begins by training the first hidden layer using an autoencoder network minimizing the reconstruction error of the input. Once this layer has been trained, its parameters are fixed and the next layer is trained in a similar manner. The process is repeated until all the layers have been trained. This process is illustrated in Figure 2. The iterative nature of this process makes pre-training a relatively slow and time consuming process.</p>
-									<img src="images/glp1.png" alt="" style="width:20%;height:50%"/>
-									<img src="images/glp2.png" alt="" style="width:77%;height:100%"/>
-									<p><br>As mentioned earlier, <a href="https://arxiv.org/pdf/1603.02836.pdf" target="_blank">recent research</a> has shown an alternative parallel approach to this process where different layers are trained in parallel with empirically observed convergence and accuracy similar to the traditional approach. In this algorithm, different layers are trained concurrently with regular synchronization of intermediate layer updates. This enables faster pre-training. The goal of our project is to provide an efficient implementation of the same in a distributed heterogenous processor environment.</p>
-								</div>
-							</section>
-
-						<!-- Three -->
 							<section id="three">
 								<div class="container">
 									<h3>Challenges</h3>
 									<p><ul>
-											<li>Implementing the algorithm in a distributed setting might require an implementation of a custom parameter server.</li>
-											<li>Convergence of the synchronized layer-wise pre-training algorithm might take longer than the traditional approach.</li>
-											<li>Implementation when number of layers to be trained exceeds number of active parallel units which can run concurrently in the given environment.</li>
-											<li>Scaling the implementation for large datasets.</li>
+										<li>Convergence of the model parallel and data parallel approaches might take more epochs than the traditional greedy layer-wise pretraining approach.</li>
+										<li>Implementation when number of layers to be trained exceeds number of active parallel units which can run concurrently in the given environment necessitates training a set of layers together followed by next set of layers in model parallel approach.</li>
+										<li>Tensorflow limitations of profiling the code and understanding under-the-hood optimizations to better enhance our implementation.</li>
 										</ul>
-									</p>
-									<h4>Workload Characteristics &amp Constraints</h4>
-									<p>
-										Every layer might require large input data. Maintaining the outputs of intermediate layers in a constrained memory setting will be a challenge. Optimizing communication between contiguous layers spread across different systems in the distributed environment is the key challenge.
 									</p>
 								</div>
 							</section>
@@ -233,68 +206,15 @@
 						<!-- Four -->
 							<section id="four">
 								<div class="container">
-									<h3>Resources</h3>
-									<p><h4>Reference papers:</h4>
+									<h3>References</h3>
+									<p>
 										<ul>
 											<li> Santara, Anirban, et al. "Faster learning of deep stacked autoencoders on multi-core systems using synchronized layer-wise pre-training." arXiv preprint arXiv:1603.02836 (2016).</li>
-											<li> Cui, Henggang, et al. "Geeps: Scalable deep learning on distributed gpus with a gpu-specialized parameter server." Proceedings of the Eleventh European Conference on Computer Systems. ACM, 2016. </li>
 											<li> Bengio, Yoshua, et al. "Greedy layer-wise training of deep networks." Advances in neural information processing systems 19 (2007): 153. </li>
-										</ul></p>
-									<p><h4>Computing Resources:</h4>
-										<ul>
-											<li> Latedays cluster for development and testing (Distributed multi-core CPU-GPU environment) </li>
-										</ul></p>
-									<p><h4>Starter code:</h4>
-										<ul>
-											<li> Considering using an efficient single-GPU implementation of autoencoder training from Caffe, Theano or TensorFlow. </li>
+											<li><a href="http://cmgreen.io/2016/01/04/tensorflow_deep_autoencoder.html" target="_blank">http://cmgreen.io/2016/01/04/tensorflow_deep_autoencoder.html</a> - For greedy layerwise baseline</li>
 										</ul></p>
 								</div>
 							</section>
-
-						<!-- Five -->
-							<section id="five">
-								<div class="container">
-									<h3>Goals &amp Deliverables</h3>
-									<p><ul>
-										<li> WE PLAN to achieve an efficient multi-GPU implementation of synchronized layer-wise pre-training algorithm of deep stacked autoencoders. An existing multi-core implementation of this algorithm has been reported to give a speed-up of over 25%. We plan to improve this by implementing the same in an efficient manner, potentially achieving greater speedup.</li>
-										<li> WE HOPE to achieve an efficient distributed implementation and a generalized distributed version of this algorithm and open source the same if the results are promising.</li>
-										<li> In the parallelism competition, we will exhibit analysis of speedup, with accuracies achieved on standard benchmark neural networks.</li>
-										<li> We plan to analyze and understand performance improvements and accuracy guarantees for benchmark deep neural networks for varying data sizes and number of layers of pre-training.</li>
-									</ul></p>
-								</div>
-							</section>
-
-						<!-- Six -->
-							<section id="six">
-								<div class="container">
-									<h3>Platform</h3>
-									<p>The cluster contains 18 machines (1 head node + 17 worker nodes). Each machine features:
-										<ul>
-											<li> Two, six-core <a href="http://ark.intel.com/products/83352/Intel-Xeon-Processor-E5-2620-v3-15M-Cache-2_40-GHz" target="_blank">Xeon e5-2620 v3 processors </a> (2.4 GHz, 15MB L3 cache, hyper-threading, AVX2 instruction support) </li>
-											<li> 16 GB RAM (60 GB/sec of BW) </li>
-											<li> 3 machines with 12 GB Titan X GPU and rest with Titan K40 12 GB GPU </li>
-										</ul>
-								</div>
-							</section>
-
-						<!-- Seven -->
-							<section id="seven">
-								<div class="container">
-									<h3>Updated Schedule</h3>
-									<p>The list of tasks with tentative completion dates are enlisted below:</p>
-									<ul>
-										<li> Extensive Literature Review - April 14, 2017 [Completed]</li>
-										<li> Analyze and finalize choice of programming platform and install required softwares - April 14, 2017 [Completed]</li>
-										<li> Baseline 1: Implement greedy layer-wise pre-training of deep stacked autoencoders in CUDA (Using Tensorflow) - April 14, 2017 [Completed]</li>
-										<li> Baseline 2: Implement synchronized layer-wise pre-training of deep stacked autoencoders on single GPU - April 21, 2017 [Completed]</li>
-										<li> Implement 2-GPU single node implementation of synchronized layer-wise pre-training of deep stacked autoencoders - April 27, 2017 [Almost Done. Resolving minor issues in the code]</li>
-										<li> Implement generalized multi-GPU single node implementation of synchronized layer-wise pre-training of deep stacked autoencoders and analyze various training strategies - May 4, 2017</li>
-										<li> Analyze the various training strategies for large datasets and deeper networks and compare performance - May 8, 2017 </li>
-										<li> Implement distributed single-GPU multi-node implementation of synchronized layer-wise pre-training of deep stacked autoencoders - May 10, 2017</li>
-									</ul>
-								</div>
-							</section>							
-
 					</div>
 
 				<!-- Footer -->
