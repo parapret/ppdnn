@@ -75,10 +75,18 @@
 									<h3>What is pretraining a deep neural network?</h3>
 									<p>
 										Given a deep neural network, pretraining is a process where the weights of the network are learnt to provide a good starting point for training the network further. It helps pre-condition the network with a set of parameter values which effectively facilitates further supervised training.
-										<img src="images/glp1.png" alt="" style="width:20%;height:70%"/>
+										<img src="images/glp1.png" alt="" style="width:20%;height:100%"/>
 										<img src="images/glp2.png" alt="" style="width:77%;height:100%"/>
 										The traditional approach to pretraining the network uses greedy layer-wise pretraining. Figure 1 illustrates a deep neural network with 3 hidden layers. The greedy layer-wise pre-training works bottom-up in a deep neural network. The algorithm begins by training the first hidden layer using an autoencoder network minimizing the reconstruction error of the input. Once this layer has been trained, its parameters are fixed and the next layer is trained in a similar manner. The process is repeated until all the layers have been trained. This process is illustrated in Figure 2. The iterative nature of this process makes pre-training a relatively slow and time consuming process.
-										In this project, we explore parallelizing this process in two ways - <b> Model Parallel </b> approach and <b> Data Parallel </b> approach.
+										In this project, we parallelize this process in two ways - <b> Model Parallel </b> approach and <b> Data Parallel </b> approach. We use an implementation of <a href="http://cmgreen.io/2016/01/04/tensorflow_deep_autoencoder.html" target="_blank">greedy layer-wise pretraining</a> in Tensorflow as our baseline.
+									</p>
+									<p>
+										<h3>Baselines and Model Correctness checks</h3>
+										<ul>
+											<li>We use greedy layerwise pretraining as our baseline for both the implementations.</li>
+											<li>We verify the loss values after every epoch and every batch to understand how different models are training.</li>
+											<li>We profile our code for every single op performed by Tensorflow. Since tensorflow profiling softwares are relative new, we run one op after another several times to get an estimate of time taken by every op in our code.</li>
+										</ul>
 									</p>
 								</div>
 							</section>
@@ -87,19 +95,19 @@
 								<div class="container">
 									<h3>Model Parallel Approach</h3>
 									<p>
-										In model parallel approach, we train each layer of the network on different nodes. Recent research has shown that a <a href="https://arxiv.org/pdf/1603.02836.pdf" target="_blank">synchronized layer-wise pre-training approach</a> using multiple cores is effective in speeding up the pre-training process by over 25 percent achieving similar accuracies on classification task.
+										In model parallel approach, we train each layer of the network on different nodes with synchronization of previous layer weights.
 										<img src="images/mp.png" alt="" style="width:80%;height:50%"/>
 									</p>
 									<p>
-										The above figure shows the overview of model parallel pretraining. The process begins by training the first layer using an autoencoder network for one epoch. This considers all the images in the training dataset batch-wise and learns weights for the first epoch. The learned weights are then sent to the next node, which sets these weights as fixed parameters and starts learning the weights of the second layer (first epoch of second layer). Meanwhile, the first node continues training the first layer's second epoch in parallel. This process is continued such that all layers are trained for a certain number of epochs in parallel with communication of weights between layers every epoch.
+										The above figure shows the overview of model parallel pretraining. The process begins by training the first layer using an autoencoder network for one epoch. This considers all the images in the training dataset batch-wise and learns weights for the first epoch. The learned weights are then sent to the next node, which sets these weights as fixed parameters and starts learning the weights of the second layer (first epoch of second layer). Meanwhile, the first node continues training the first layer's second epoch in parallel. This process is continued such that all layers are trained for a certain number of epochs in parallel with communication of weights between layers every epoch. 
 									</p>
 									<p>
-									<h4> Experimental Setup </h4>
-									<ul>
-										<li>For all experiments, we use AWS g2.8xlarge instance, which has 4 NVIDIA GRID K520 GPUs on the instance.</li>
-										<li>We implemented the model with Tensorflow using Multi-GPU primitives.</li>
-									  	<li>We use MNIST hand-written digit recognition dataset containing 55000 training images and 10 output labels.</li>
-									</ul>
+										<h3>Constraints and Optimizations</h3>
+										<ul>
+											<li>Our current implementation generalizes for any number of GPUs and any number of hidden layers. If the number of hidden layers (H) exceeds number of GPUs (G), then G hidden layers are trained in parallel for specified number of epochs after which their weights are fixed for next G hidden layers to be trained and so on.</li>
+											<li>Communicating weights to the adjacent layers after every epoch: We tried minimizing the communication overhead by synchronization after a bunch of epochs. However, that would increase sequential part of training the first few layers. Since the number of epochs we were training is relatively small, this didn't help.</li>
+											<li>We allow one full epoch to be trained before starting the next layer so that the input is seen by the previous layer weights once for providing a better starting point for the next layer.</li>
+										</ul>
 									</p>
 									<h4> What is the speed-up?</h4>
 									<p>
@@ -109,7 +117,7 @@
 									Pretraining for 60 epochs using a batch-size of 5000 on a network with different number of hidden layers, each containing 2000 hidden units: 
 									<img src="images/mpres2.png" alt="" style="width:80%;height:50%"/></p>
 									<p>
-									<h4>Key Observations</h4>
+									<h4>Key Results and Observations</h4>
 									<ul>
 										<li>We achieved 1.3x speedup for 4 layers on 4 GPUs and 1.24x speedup for 3 layers on 3 GPUs, when pretraining is done for 30 epochs with a batch-size of 100.</li>
 										<li>Increasing the batch-size and number of epochs helps us achieve better speedup of 2.1x for 4 layers on 4 GPUs and 1.84x for 3 layers on 3 GPUs.</li>
@@ -124,16 +132,15 @@
 								<div class="container">
 									<h3>Data Parallel Approach</h3>
 									<p>
-										In data-parallel pretraining, the entire training dataset is split into smaller chunks and each GPU in the multi-GPU environment performs training on a chunk of this training data. In our implementation, we send a batch-size of data to every node and perform training on the batch. At the end of this, the gradients computed by the various GPUs are accumulated, averaged and applied to the corresponding weight parameters. These weights are then used by different nodes to perform the next set of batches in parallel. This process repeats layer-wise, just like in greedy layer-wise pretraining. Thus, the important overhead in this data-parallel approach is caused by the wide-dependency of synchronization and averaging of gradients and applying the weight updates at the end of processing the batch. The figure below illustrates the data parallel pretraining approach.
+										In data-parallel pretraining, the entire training dataset is split into smaller chunks and each GPU in the multi-GPU environment performs training on a chunk of this training data. In our implementation, we send a batch-size of data to every node and perform training on the batch. At the end of this, the gradients computed by all the GPUs are accumulated, averaged and applied to the corresponding weight parameters. These weights are then used by different nodes to perform the next set of batches in parallel. This process repeats layer-wise, just like in greedy layer-wise pretraining. Thus, the important overhead in this data-parallel approach is caused by the wide-dependency of synchronization and averaging of gradients and applying the weight updates at the end of processing the batch. The figure below illustrates the data parallel pretraining approach.
 										<img src="images/dp.png" alt="" style="width:80%;height:50%"/>
 									</p>
 									<p>
-									<h4> Experimental Setup </h4>
-									<ul>
-										<li>For all experiments, we use AWS g2.8xlarge instance, which has 4 NVIDIA GRID K520 GPUs on the instance.</li>
-										<li>We implemented the model with Tensorflow using Multi-GPU primitives.</li>
-									  	<li>We use MNIST hand-written digit recognition dataset containing 55000 training images and 10 output labels.</li>
-									</ul>
+										<h3>Constraints and Optimizations</h3>
+										<ul>
+											<li>We ensured we don't load the images for different GPUs individually. Instead we run the load operation once and use indexing into the image array for different towers in Tensorflow.</li>
+											<li>We considered sending the entire chunk of training images corresponding to each GPU once and do gradient averaging after an epoch instead of after processing one batch on each GPU. We discarded this idea because the dataset could be very large for the chunk corresponding to each GPU to be processed together. Also, since the averaging process reduces accuracy, the smaller batch each GPU processes for averaging, the better the accuracy.</li>
+										</ul>
 									</p>
 									<h4> What is the speed-up?</h4>
 									<p>
@@ -160,7 +167,7 @@
 									<p>
 									<ul>
 										<li>The time to accumulate gradients, average them and perform the weight update didn't scale with number of GPUs and remained constant for varying number of GPUs. This can be explained by the fact that there is a synchronization step at the end of processing a batch, which is a form of a wide dependency taking a constant time.</li>
-										<li>Most of the time is spent in doing the forward and back-propagation and computing the loss. This scales as the number of GPUs are increased.</li>
+										<li>Most of the time is spent in doing the forward and back-propagation and computing the gradients. This scales proportionately as the number of GPUs are increased.</li>
 									</ul>
 									</p>
 									<p>
@@ -217,8 +224,10 @@
 									<h3>Challenges</h3>
 									<p><ul>
 										<li>Convergence of the model parallel and data parallel approaches might take more epochs than the traditional greedy layer-wise pretraining approach.</li>
+										<li>Synchronization and communication overheads for both model parallel and data parallel approaches.</li>
+										<li>Understanding the right model configuration and trade-off between parallelism and accuracy requires some amount of domain understanding.</li>
 										<li>Implementation when number of layers to be trained exceeds number of active parallel units which can run concurrently in the given environment necessitates training a set of layers together followed by next set of layers in model parallel approach.</li>
-										<li>Tensorflow limitations of profiling the code and understanding under-the-hood optimizations to better enhance our implementation.</li>
+										<li>Tensorflow limitations for profiling the code, obtaining fine-grained primitives and understanding under-the-hood optimizations to better enhance our implementation.</li>
 										</ul>
 									</p>
 								</div>
