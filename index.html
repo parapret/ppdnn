@@ -73,8 +73,30 @@
 									<p>
 										In model parallel approach, we train each layer of the network on different nodes. Recent research has shown that a <a href="https://arxiv.org/pdf/1603.02836.pdf" target="_blank">synchronized layer-wise pre-training approach</a> using multiple cores is effective in speeding up the pre-training process by over 25 percent achieving similar accuracies on classification task.
 										<img src="images/mp.png" alt="" style="width:80%;height:50%"/>
-										The above figure shows the overview of model parallel pretraining. The process begins by training the first layer using an autoencoder network for one epoch. This considers all the images in the training dataset batch-wise and learns weights for the first epoch. The learned weights are then sent to the next node, which uses this as fixed and starts learning the first epoch of the second layer. The first node continues training the first layer's second epoch in parallel. This process is continued such that all layers are trained for a certain number of epochs in parallel with communication of weights between layers every epoch.
 									</p>
+									<p>
+										The above figure shows the overview of model parallel pretraining. The process begins by training the first layer using an autoencoder network for one epoch. This considers all the images in the training dataset batch-wise and learns weights for the first epoch. The learned weights are then sent to the next node, which sets these weights as fixed parameters and starts learning the weights of the second layer (first epoch of second layer). Meanwhile, the first node continues training the first layer's second epoch in parallel. This process is continued such that all layers are trained for a certain number of epochs in parallel with communication of weights between layers every epoch.
+									</p>
+									<p>
+									<h4> Experimental Setup </h4>
+									<ul>
+										<li>For all experiments, we use AWS g2.8xlarge instance, which has 4 NVIDIA GRID K520 GPUs on the instance.</li>
+										<li>We implemented the model with Tensorflow using Multi-GPU primitives.</li>
+									  	<li>We use MNIST hand-written digit recognition dataset containing 55000 training images and 10 output labels.</li>
+									</ul>
+									</p>
+									<h4> What is the speed-up?</h4>
+									Pretraining for 30 epochs using a batch-size of 100 on a network with different number of hidden layers, each containing 2000 hidden units: 
+									<img src="images/mpres1.png" alt="" style="width:80%;height:50%"/>
+									Pretraining for 60 epochs using a batch-size of 5000 on a network with different number of hidden layers, each containing 2000 hidden units: 
+									<img src="images/mpres2.png" alt="" style="width:80%;height:50%"/>
+									<ul>
+										<li>We achieved 1.3x speedup for 4 layers on 4 GPUs and 1.24x speedup for 3 layers on 3 GPUs, when pretraining is done for 30 epochs with a batch-size of 100.</li>
+										<li>Increasing the batch-size and number of epochs helps us achieve better speedup of 2.1x for 4 layers on 4 GPUs and 1.84x for 3 layers on 3 GPUs.</li>
+										<li>Increasing number of epochs amortizes communication overhead.</li>
+										<li>Profiling our code helped us understand that computing gradients and applying the update to the weights is a time consuming part of the pretraining process. Hence, higher batch-sizes reduces the number of times compute-and-apply gradient step occurs, thereby providing greater speed-up.</li>
+										<li>The other interesting observation is that training 4 layers on 3 GPUs and 3 layers on 2 GPUs enforces one of the layers to be sequential, keeping the other GPUs idle. This results in poor speed-up for such configurations.</li>
+									</ul>
 								</div>
 							</section>
 
