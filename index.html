@@ -49,7 +49,7 @@
 							<section id="sum">
 								<div class="container">
 									<header class="major">
-										<h1>Parallelizing Pretraining of Deep Neural Networks using Stacked Autoencoders</h1>
+										<h3>Parallelizing Pretraining of Deep Neural Networks using Stacked Autoencoders</h3>
 									</header>
 									<h3>Summary</h3>
 									<p>
@@ -91,7 +91,7 @@
 										In this project, we parallelize this process in two ways - <b> Model Parallel </b> approach and <b> Data Parallel </b> approach. We use an implementation of <a href="http://cmgreen.io/2016/01/04/tensorflow_deep_autoencoder.html" target="_blank">greedy layer-wise pretraining</a> in Tensorflow as our baseline.
 									</p>
 									<p>
-										<h3>Baselines and Model Correctness checks</h3>
+										<h4>Baselines and Model Correctness checks</h4>
 										<ul>
 											<li>We use greedy layerwise pretraining as our baseline for both the implementations.</li>
 											<li>We verify the loss values after every epoch and every batch to understand how different models are training.</li>
@@ -112,7 +112,7 @@
 										The above figure shows the overview of model parallel pretraining. The process begins by training the first layer using an autoencoder network for one epoch. This considers all the images in the training dataset batch-wise and learns weights for the first epoch. The learned weights are then sent to the next node, which sets these weights as fixed parameters and starts learning the weights of the second layer (first epoch of second layer). Meanwhile, the first node continues training the first layer's second epoch in parallel. This process is continued such that all layers are trained for a certain number of epochs in parallel with communication of weights between layers every epoch. 
 									</p>
 									<p>
-										<h3>Constraints and Optimizations</h3>
+										<h4>Constraints and Optimizations</h4>
 										<ul>
 											<li>Our current implementation generalizes for any number of GPUs and any number of hidden layers. If the number of hidden layers (H) exceeds number of GPUs (G), then G hidden layers are trained in parallel for specified number of epochs after which their weights are fixed for next G hidden layers to be trained and so on.</li>
 											<li>Communicating weights to the adjacent layers after every epoch: We tried minimizing the communication overhead by synchronization after a bunch of epochs. However, that would increase sequential part of training the first few layers. Since the number of epochs we were training is relatively small, this didn't help.</li>
@@ -146,7 +146,7 @@
 										<img src="images/dp.png" alt="" style="width:80%;height:50%"/>
 									</p>
 									<p>
-										<h3>Constraints and Optimizations</h3>
+										<h4>Constraints and Optimizations</h4>
 										<ul>
 											<li>We ensured we don't load the images for different GPUs individually. Instead we run the load operation once and use indexing into the image array for different towers in Tensorflow.</li>
 											<li>We considered sending the entire chunk of training images corresponding to each GPU once and do gradient averaging after an epoch instead of after processing one batch on each GPU. We discarded this idea because the dataset could be very large for the chunk corresponding to each GPU to be processed together. Also, since the averaging process reduces accuracy, the smaller batch each GPU processes for averaging, the better the accuracy.</li>
@@ -203,7 +203,7 @@
 									<p>
 										For a good batch-size of 7000 images, data parallel approach performs better than model parallel approach for both uniform distribution of hidden units across layers and a skewed distribution of hidden units across layers.
 									</p>
-									<h3>But are accuracies still consistent with greedy layer-wise pretraining?</h3>
+									<h4>But are accuracies still consistent with greedy layer-wise pretraining?</h4>
 									<p>
 										The plot below shows the model accuracy after pretraining and supervised finetuning for different number of epochs of pretraining and finetuning for both greedy layer-wise pretraining and model parallel pretraining. 
 										<img src="images/conres2.png" alt="" style="width:80%;height:50%"/>
@@ -219,7 +219,7 @@
 										For smaller batch-sizes, the accuracies will be higher but the run-times and speed-ups will be much lesser. Hence, there is a compromise between accuracy and speed-up for data parallel approach.
 									</p>
 									<p>
-										<h3>Does parallelism help?</h3>
+										<h4>Does parallelism help?</h4>
 										Pretraining for 60 epochs using a batch-size of 5000 on a network with 4 hidden layers, each containing 2000 hidden units: 
 										<img src="images/conres3.png" alt="" style="width:80%;height:40%"/>
 									</p>
