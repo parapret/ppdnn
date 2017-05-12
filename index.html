@@ -86,17 +86,76 @@
 									</ul>
 									</p>
 									<h4> What is the speed-up?</h4>
+									<p>
 									Pretraining for 30 epochs using a batch-size of 100 on a network with different number of hidden layers, each containing 2000 hidden units: 
-									<img src="images/mpres1.png" alt="" style="width:80%;height:50%"/>
+									<img src="images/mpres1.png" alt="" style="width:80%;height:50%"/></p>
+									<p>
 									Pretraining for 60 epochs using a batch-size of 5000 on a network with different number of hidden layers, each containing 2000 hidden units: 
-									<img src="images/mpres2.png" alt="" style="width:80%;height:50%"/>
+									<img src="images/mpres2.png" alt="" style="width:80%;height:50%"/></p>
+									<p>
+									<h4>Key Observations</h4>
 									<ul>
 										<li>We achieved 1.3x speedup for 4 layers on 4 GPUs and 1.24x speedup for 3 layers on 3 GPUs, when pretraining is done for 30 epochs with a batch-size of 100.</li>
 										<li>Increasing the batch-size and number of epochs helps us achieve better speedup of 2.1x for 4 layers on 4 GPUs and 1.84x for 3 layers on 3 GPUs.</li>
 										<li>Increasing number of epochs amortizes communication overhead.</li>
 										<li>Profiling our code helped us understand that computing gradients and applying the update to the weights is a time consuming part of the pretraining process. Hence, higher batch-sizes reduces the number of times compute-and-apply gradient step occurs, thereby providing greater speed-up.</li>
 										<li>The other interesting observation is that training 4 layers on 3 GPUs and 3 layers on 2 GPUs enforces one of the layers to be sequential, keeping the other GPUs idle. This results in poor speed-up for such configurations.</li>
+									</ul></p>
+								</div>
+							</section>
+
+							<section id="dp">
+								<div class="container">
+									<h3>Data Parallel Approach</h3>
+									<p>
+										In data-parallel pretraining, the entire training dataset is split into smaller chunks and each GPU in the multi-GPU environment performs training on a chunk of this training data. In our implementation, we send a batch-size of data to every node and perform training on the batch. At the end of this, the gradients computed by the various GPUs are accumulated, averaged and applied to the corresponding weight parameters. These weights are then used by different nodes to perform the next set of batches in parallel. This process repeats layer-wise, just like in greedy layer-wise pretraining. Thus, the important overhead in this data-parallel approach is caused by the wide-dependency of synchronization and averaging of gradients and applying the weight updates at the end of processing the batch. The figure below illustrates the data parallel pretraining approach.
+										<img src="images/dp.png" alt="" style="width:80%;height:60%"/>
+									</p>
+									<p>
+									<h4> Experimental Setup </h4>
+									<ul>
+										<li>For all experiments, we use AWS g2.8xlarge instance, which has 4 NVIDIA GRID K520 GPUs on the instance.</li>
+										<li>We implemented the model with Tensorflow using Multi-GPU primitives.</li>
+									  	<li>We use MNIST hand-written digit recognition dataset containing 55000 training images and 10 output labels.</li>
 									</ul>
+									</p>
+									<h4> What is the speed-up?</h4>
+									<p>
+									Pretraining for 40 epochs using a batch-size of 5000 on a network with 4 hidden layers, each containing 2000 hidden units: 
+									<img src="images/dpres1.png" alt="" style="width:80%;height:50%"/></p>
+									<p>
+									<ul>
+										<li>We observe near linear speedup on the number of GPUs in data parallel approach for an optimum batch size.</li>
+										<li>In the data parallel approach, the gradients are accumulated and weights are updated after every node processes a batch-size of images each. Hence, if the batch-size is very small, then, the amount of communication and synchronization overhead due to wide-dependency overshadows the parallelism benefit.</li>
+										<li>Hence, there is an optimum batch-size which provided a linear speed-up.</li>
+									</ul>
+									</p>
+									<p>
+									The plot below shows the run-times of training one epoch of the data on 4 GPUs for one hidden layer using the data parallel approach for varying batch-sizes.
+									<img src="images/dpres2.png" alt="" style="width:80%;height:50%"/></p>
+									<p>
+									<ul>
+										<li>We observe that increasing batch-size helps speed up pretraining process until the data fits within GPU memory.</li>
+										<li>The run time per epoch had an optimal value for a batch-size of 7000 images per batch.</li>
+									</ul></p>
+									<p>
+									We then profiled our code to understand which operation consumes how much time. The results are shown in the graph below.
+									<img src="images/dpres3.png" alt="" style="width:80%;height:50%"/></p>
+									<p>
+									<ul>
+										<li>The time to accumulate gradients, average them and perform the weight update didn't scale with number of GPUs and remained constant for varying number of GPUs. This can be explained by the fact that there is a synchronization step at the end of each epoch, which is a form of a wide dependency which takes a constant time.</li>
+										<li>Most of the time is spent in doing the forward and back-propagation and computing the loss.</li>
+									</ul>
+									</p>
+									<p>
+									<h4>Key Observations</h4>
+									<ul>
+										<li>We achieved 1.3x speedup for 4 layers on 4 GPUs and 1.24x speedup for 3 layers on 3 GPUs, when pretraining is done for 30 epochs with a batch-size of 100.</li>
+										<li>Increasing the batch-size and number of epochs helps us achieve better speedup of 2.1x for 4 layers on 4 GPUs and 1.84x for 3 layers on 3 GPUs.</li>
+										<li>Increasing number of epochs amortizes communication overhead.</li>
+										<li>Profiling our code helped us understand that computing gradients and applying the update to the weights is a time consuming part of the pretraining process. Hence, higher batch-sizes reduces the number of times compute-and-apply gradient step occurs, thereby providing greater speed-up.</li>
+										<li>The other interesting observation is that training 4 layers on 3 GPUs and 3 layers on 2 GPUs enforces one of the layers to be sequential, keeping the other GPUs idle. This results in poor speed-up for such configurations.</li>
+									</ul></p>
 								</div>
 							</section>
 
