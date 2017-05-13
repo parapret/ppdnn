@@ -49,7 +49,7 @@
 							<section id="sum">
 								<div class="container">
 									<header class="major">
-										<h3>Parallelizing Pretraining of Deep Neural Networks using Stacked Autoencoders</h3>
+										<h2>Parallelizing Pretraining of Deep Neural Networks using Stacked Autoencoders</h2>
 									</header>
 									<h3>Summary</h3>
 									<p>
@@ -84,9 +84,9 @@
 								<div class="container">
 									<h3>What is pretraining a deep neural network?</h3>
 									<p>
-										Given a deep neural network, pretraining is a process where the weights of the network are learnt to provide a good starting point for training the network further. It helps pre-condition the network with a set of parameter values which effectively facilitates further supervised training.
+										Given a deep neural network, pretraining is a process where the weights of the network are learnt to provide a good starting point for training the network further. It helps pre-condition the network with a set of parameter values which effectively facilitates further supervised training.<br>
 										<img src="images/glp1.png" alt="" style="width:20%;height:100%"/>
-										<img src="images/glp2.png" alt="" style="width:77%;height:100%"/>
+										<img src="images/glp2.png" alt="" style="width:77%;height:100%"/><br>
 										The traditional approach to pretraining the network uses greedy layer-wise pretraining. Figure 1 illustrates a deep neural network with 3 hidden layers. The greedy layer-wise pre-training works bottom-up in a deep neural network. The algorithm begins by training the first hidden layer using an autoencoder network minimizing the reconstruction error of the input. Once this layer has been trained, its parameters are fixed and the next layer is trained in a similar manner. The process is repeated until all the layers have been trained. This process is illustrated in Figure 2. The iterative nature of this process makes pre-training a relatively slow and time consuming process.
 										In this project, we parallelize this process in two ways - <b> Model Parallel </b> approach and <b> Data Parallel </b> approach. We use an implementation of <a href="http://cmgreen.io/2016/01/04/tensorflow_deep_autoencoder.html" target="_blank">greedy layer-wise pretraining</a> in Tensorflow as our baseline.
 									</p>
@@ -121,7 +121,7 @@
 									</p>
 									<h4> What is the speed-up?</h4>
 									<p>
-									Pretraining for 30 epochs using a batch-size of 100 on a network with different number of hidden layers, each containing 2000 hidden units: 
+									Pretraining for 30 epochs using a batch-size of 100 on a network with different number of hidden layers, each containing 2000 hidden units:<br> 
 									<img src="images/mpres1.png" alt="" style="width:80%;height:50%"/></p>
 									<p>
 									Pretraining for 60 epochs using a batch-size of 5000 on a network with different number of hidden layers, each containing 2000 hidden units: 
@@ -205,7 +205,7 @@
 									</p>
 									<h4>Are accuracies still consistent with greedy layer-wise pretraining?</h4>
 									<p>
-										The plot below shows the model accuracy after pretraining and supervised finetuning for different number of epochs of pretraining and finetuning for both greedy layer-wise pretraining and model parallel pretraining. 
+										The plot below shows the model accuracy after pretraining and supervised finetuning for different number of epochs of pretraining and finetuning for both greedy layer-wise pretraining and model parallel pretraining. <br>
 										<img src="images/conres2.png" alt="" style="width:80%;height:50%"/>
 									</p>
 									<p>
@@ -220,7 +220,7 @@
 									</p>
 									<p>
 										<h4>Does parallelism help?</h4>
-										Pretraining for 60 epochs using a batch-size of 5000 on a network with 4 hidden layers, each containing 2000 hidden units: 
+										Pretraining for 60 epochs using a batch-size of 5000 on a network with 4 hidden layers, each containing 2000 hidden units: <br>
 										<img src="images/conres3.png" alt="" style="width:80%;height:40%"/>
 									</p>
 									<p>
